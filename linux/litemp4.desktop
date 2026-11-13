@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=轻播 Lite
+Comment=轻量多格式视频播放器
+Exec=python3 /opt/litemp4/litemp4.py %F
+TryExec=python3
+Icon=video-x-generic
+Terminal=false
+Categories=AudioVideo;Video;Player;
+Keywords=video;mpv;player;mp4;mkv;

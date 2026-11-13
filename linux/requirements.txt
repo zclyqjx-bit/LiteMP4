@@ -1,0 +1,6 @@
+# Runtime dependencies (installed by the distribution, not pip)
+# mpv >= 0.34
+# python3-tk / python3-tkinter (Tkinter for Python 3)
+#
+# Optional tray integration:
+# pystray and Pillow are optional Python packages.

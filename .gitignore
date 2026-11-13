@@ -1,0 +1,18 @@
+.cache/
+.test-artifacts/
+__pycache__/
+*.py[cod]
+
+# Local backups and diagnostic output
+backups/
+process-status.txt
+
+# Generated release artifacts
+dist/
+
+# Locally installed build tools
+tools/InnoSetup/
+
+# Large third-party binaries are distributed with Releases, not Git.
+# Keep the corresponding license and copyright files in source control.
+runtime/*.dll

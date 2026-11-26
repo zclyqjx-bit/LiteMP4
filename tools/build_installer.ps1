@@ -21,7 +21,7 @@ if (-not (Test-Path -LiteralPath $InnoSetupPath)) {
     throw "Inno Setup compiler does not exist: $InnoSetupPath"
 }
 $script = Join-Path $root 'installer\LiteMP4-Setup.iss'
-$output = Join-Path $root 'dist\LiteMP4-Setup-v1.7.exe'
+$output = Join-Path $root 'dist\LiteMP4-Setup-v1.7.3.exe'
 $process = Start-Process -FilePath $InnoSetupPath -ArgumentList @('/Q', $script) -Wait -PassThru
 if ($process.ExitCode -ne 0) {
     throw "Inno Setup failed with exit code $($process.ExitCode)"

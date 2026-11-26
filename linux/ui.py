@@ -28,7 +28,7 @@ HOVER = "#29333E"
 
 
 class LitePlayerApp:
-    RATES = (0.5, 0.75, 1.0, 1.25, 1.5, 2.0)
+    RATES = (0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0)
 
     def __init__(self, paths):
         self.root = TkinterDnD.Tk() if TkinterDnD is not None else tk.Tk()
@@ -56,6 +56,7 @@ class LitePlayerApp:
         self.playing = False
         self.closing = False
         self.poll_tick = 0
+        self.video_click_after = None
         self.external = os.environ.get("LITEMP4_EXTERNAL") == "1"
         self.sync_log_path = os.environ.get("LITEMP4_SYNC_LOG")
         self.tray_icon = None
@@ -133,7 +134,8 @@ class LitePlayerApp:
                                     font=("TkDefaultFont", 14))
         self.empty_label.pack(expand=True)
         for widget in (self.video_frame, self.empty_label):
-            widget.bind("<Double-Button-1>", lambda _event: self.toggle_fullscreen())
+            widget.bind("<Button-1>", self.on_video_single_click)
+            widget.bind("<Double-Button-1>", self.on_video_double_click)
         if DND_FILES is not None:
             for widget in (self.video_frame, self.empty_label):
                 widget.drop_target_register(DND_FILES)
@@ -189,6 +191,26 @@ class LitePlayerApp:
         self.volume_scale.pack(side=tk.RIGHT, padx=3)
         self.make_button(transport, "⛶", self.toggle_fullscreen, width=3).pack(side=tk.RIGHT, padx=3)
         content.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+    def cancel_video_click(self):
+        if self.video_click_after is not None:
+            self.root.after_cancel(self.video_click_after)
+            self.video_click_after = None
+
+    def on_video_single_click(self, _event):
+        self.cancel_video_click()
+        if self.backend is None or self.ended or self.closing:
+            return
+        self.video_click_after = self.root.after(300, self.safe(self.apply_video_click))
+
+    def on_video_double_click(self, _event):
+        self.cancel_video_click()
+        self.toggle_fullscreen()
+
+    def apply_video_click(self):
+        self.video_click_after = None
+        if self.backend is not None and not self.ended and not self.closing:
+            self.toggle_play()
 
     def bind_keys(self):
         bindings = {
@@ -341,6 +363,7 @@ class LitePlayerApp:
             self.backend = None
 
     def open_current(self):
+        self.cancel_video_click()
         if not (0 <= self.current_index < len(self.playlist)):
             return
         self.current_path = self.playlist[self.current_index]
@@ -397,6 +420,7 @@ class LitePlayerApp:
             self.update_playlist_view()
 
     def clear_playlist(self):
+        self.cancel_video_click()
         self.stop_backend()
         self.playlist = []
         self.current_index = -1
@@ -415,6 +439,7 @@ class LitePlayerApp:
         self.update_play_button()
 
     def toggle_play(self):
+        self.cancel_video_click()
         if self.backend is None:
             if self.playlist:
                 self.open_current()
@@ -431,6 +456,7 @@ class LitePlayerApp:
         self.update_play_button()
 
     def stop(self):
+        self.cancel_video_click()
         if self.backend is not None:
             self.backend.seek(0)
             self.backend.set_paused(True)
@@ -717,6 +743,7 @@ class LitePlayerApp:
         if self.closing:
             return
         self.closing = True
+        self.cancel_video_click()
         if self.tray_icon is not None:
             try:
                 self.tray_icon.stop()

@@ -2,7 +2,7 @@ from pathlib import Path
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT.parent / "dist" / "LiteMP4-Linux-v1.1.zip"
+OUTPUT = ROOT.parent / "dist" / "LiteMP4-Linux-v1.1-4.zip"
 
 
 def main():

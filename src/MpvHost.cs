@@ -21,6 +21,7 @@ namespace LiteMp4
         }
 
         public event Action Activated;
+        public event Action Clicked;
         public event Action DoubleClicked;
 
         protected override HandleRef BuildWindowCore(HandleRef hwndParent)
@@ -51,6 +52,8 @@ namespace LiteMp4
                 Post(Activated);
                 if (isDouble)
                     Post(DoubleClicked);
+                else
+                    Post(Clicked);
             }
             return base.WndProc(hwnd, message, wParam, lParam, ref handled);
         }

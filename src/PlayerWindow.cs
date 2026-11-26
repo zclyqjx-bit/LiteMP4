@@ -20,8 +20,8 @@ using Microsoft.Win32;
 [assembly: AssemblyTitle("轻播 Lite")]
 [assembly: AssemblyDescription("精简的 Windows 多格式视频播放器")]
 [assembly: AssemblyProduct("轻播 Lite")]
-[assembly: AssemblyVersion("1.7.0.0")]
-[assembly: AssemblyFileVersion("1.7.0.0")]
+[assembly: AssemblyVersion("1.7.3.0")]
+[assembly: AssemblyFileVersion("1.7.3.0")]
 
 namespace LiteMp4
 {
@@ -60,7 +60,7 @@ namespace LiteMp4
         private static readonly Brush ButtonHoverBrush = MakeBrush("#FF29333E");
         private static readonly Brush ButtonPressedBrush = MakeBrush("#FF35424F");
         private static readonly Brush CloseHoverBrush = MakeBrush("#FFE81123");
-        private static readonly double[] Rates = { 0.5, 0.75, 1.0, 1.25, 1.5, 2.0 };
+        private static readonly double[] Rates = { 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0 };
         private static readonly HashSet<string> SupportedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             ".mp4", ".m4v", ".mkv", ".mov", ".avi", ".wmv", ".flv", ".webm",
@@ -74,6 +74,7 @@ namespace LiteMp4
         private readonly DispatcherTimer uiTimer;
         private readonly DispatcherTimer nextTrackTimer;
         private readonly DispatcherTimer openTimer;
+        private readonly DispatcherTimer videoClickTimer;
         private readonly RangeBar seekBar;
         private readonly RangeBar volumeBar;
         private readonly TextBlock fileText;
@@ -225,6 +226,9 @@ namespace LiteMp4
             openTimer = new DispatcherTimer(DispatcherPriority.Normal);
             openTimer.Interval = TimeSpan.FromSeconds(4);
             openTimer.Tick += OnOpenTimeout;
+            videoClickTimer = new DispatcherTimer(DispatcherPriority.Normal);
+            videoClickTimer.Interval = TimeSpan.FromMilliseconds(GetDoubleClickTime());
+            videoClickTimer.Tick += OnVideoClickTimerTick;
 
             seekBar.ValueChangedByUser += SeekToRatio;
             volumeBar.ValueChangedByUser += delegate(double value) { SetVolume(value, true); };
@@ -1231,6 +1235,7 @@ namespace LiteMp4
 
         private void ReleaseMedia()
         {
+            videoClickTimer.Stop();
             openTimer.Stop();
             nextTrackTimer.Stop();
             uiTimer.Stop();
@@ -1341,6 +1346,7 @@ namespace LiteMp4
                 media.Visibility = Visibility.Collapsed;
                 mpvHost = new MpvHost();
                 mpvHost.Activated += delegate { Keyboard.Focus(this); };
+                mpvHost.Clicked += delegate { ScheduleVideoClick(); };
                 mpvHost.DoubleClicked += delegate { if (hasMedia) ToggleFullscreen(); };
                 videoArea.Children.Insert(1, mpvHost);
                 videoArea.UpdateLayout();
@@ -1633,6 +1639,7 @@ namespace LiteMp4
 
         private void TogglePlay()
         {
+            videoClickTimer.Stop();
             nextTrackTimer.Stop();
             if (!hasMedia)
             {
@@ -1682,6 +1689,7 @@ namespace LiteMp4
 
         private void StopPlayback()
         {
+            videoClickTimer.Stop();
             nextTrackTimer.Stop();
             if (!hasMedia)
                 return;
@@ -2017,6 +2025,7 @@ namespace LiteMp4
 
         private void ToggleFullscreen()
         {
+            videoClickTimer.Stop();
             isFullscreen = !isFullscreen;
             if (isFullscreen)
             {
@@ -2051,11 +2060,39 @@ namespace LiteMp4
             }
         }
 
+        private bool CanToggleVideoClick()
+        {
+            return hasMedia && !isOpening && !ended && !isClosing;
+        }
+
+        private void ScheduleVideoClick()
+        {
+            if (!CanToggleVideoClick())
+                return;
+            videoClickTimer.Stop();
+            videoClickTimer.Start();
+        }
+
+        private void OnVideoClickTimerTick(object sender, EventArgs e)
+        {
+            videoClickTimer.Stop();
+            if (CanToggleVideoClick())
+                TogglePlay();
+        }
+
         private void OnVideoMouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.ClickCount == 2 && hasMedia)
+            if (!hasMedia)
+                return;
+            if (e.ClickCount == 2)
             {
+                videoClickTimer.Stop();
                 ToggleFullscreen();
+                e.Handled = true;
+            }
+            else if (e.ClickCount == 1 && CanToggleVideoClick())
+            {
+                ScheduleVideoClick();
                 e.Handled = true;
             }
         }
@@ -2190,6 +2227,9 @@ namespace LiteMp4
             handled = true;
             return IntPtr.Zero;
         }
+
+        [DllImport("user32.dll")]
+        private static extern uint GetDoubleClickTime();
 
         [DllImport("user32.dll")]
         private static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint flags);
@@ -2429,6 +2469,7 @@ namespace LiteMp4
         private void OnWindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             isClosing = true;
+            videoClickTimer.Stop();
             DestroyTrayIcon();
             ReleaseMedia();
         }

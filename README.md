@@ -4,15 +4,15 @@
 
 ## 下载
 
-前往 [GitHub Releases](https://github.com/zclyqjx-bit/LiteMP4/releases/latest) 下载：
+前往 [GitHub Releases](https://github.com/zclyqjx-bit/LiteMP4/releases/latest) 下载当前版本（Windows v1.7.3 / Linux 1.1-4）：
 
-- `LiteMP4-Setup-v1.7.exe`：Windows 10/11 64 位安装程序，默认仅为当前用户安装，无需管理员权限。
-- `LiteMP4-Portable-v1.7.zip`：Windows 便携版，解压后保留 `LiteMP4.exe` 与同级的 `runtime/` 文件夹。
-- `litemp4_1.1-2_all.deb`：Deepin/Debian/Ubuntu 的 Linux v1.1-2 安装包。
-- `LiteMP4-Linux-v1.1.zip`：Linux v1.1 完整源码包。
-- `SHA256SUMS.txt`：上述附件的 SHA-256 校验值。
+- `LiteMP4-Setup-v1.7.3.exe`：Windows 10/11 64 位安装程序，默认仅为当前用户安装，无需管理员权限。
+- `LiteMP4-Portable-v1.7.3.zip`：Windows 便携版，解压后保留 `LiteMP4.exe` 与同级的 `runtime/` 文件夹。
+- `litemp4_1.1-4_all.deb`：Deepin/Debian/Ubuntu 的 Linux 安装包。
+- `LiteMP4-Linux-v1.1-4.zip`：Linux 完整源码包。
+- `SHA256SUMS.txt`：上述四个附件的 SHA-256 校验值。
 
-Windows 安装程序当前未购买代码签名证书，SmartScreen 可能提示“未知发布者”；下载后可核对 `SHA256SUMS.txt`。GitHub 也自动提供对应提交的全部源代码压缩包。
+GitHub 也自动提供对应提交的完整源代码压缩包，历史版本可在 Releases 页面查看。Windows 安装程序当前未购买代码签名证书，SmartScreen 可能提示“未知发布者”；下载后请核对对应版本的 SHA-256。
 
 ## 使用
 
@@ -38,7 +38,7 @@ Windows 安装程序当前未购买代码签名证书，SmartScreen 可能提示
 | 操作 | 快捷键 |
 | --- | --- |
 | 打开视频 | Ctrl + O |
-| 播放 / 暂停 | 空格 |
+| 播放 / 暂停 | 空格，或单击视频画面 |
 | 单曲循环 / 取消循环 | R 或控制栏“单曲 / 循环中”按钮 |
 | 快退 / 快进 5 秒 | ← / → |
 | 快退 / 快进 30 秒 | Shift + ← / Shift + → |
@@ -52,6 +52,8 @@ Windows 安装程序当前未购买代码签名证书，SmartScreen 可能提示
 | 最小化到托盘 | 点击最小化；托盘左键恢复，右键显示菜单 |
 | 全屏 / 退出全屏 | F、F11 或 Esc；也可双击画面 |
 | 停止并回到片头 | 停止按钮 |
+
+单击画面会在系统双击判定时间后执行播放/暂停，因此双击画面只切换全屏，不会额外改变播放状态。倍速支持 0.5×、0.75×、1×、1.25×、1.5×、2×、2.5× 和 3×，可通过倍速按钮或 [ / ] 键调整。
 
 ## 为什么更轻
 
@@ -93,10 +95,10 @@ GitHub 源码仓库不直接保存超过单文件大小限制的第三方 DLL。
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\build.ps1
 powershell -ExecutionPolicy Bypass -File .\tools\build_installer.ps1
-python .\tools\package_release.py 1.7
+python .\tools\package_release.py 1.7.3
 ```
 
-安装程序构建需要 Inno Setup 5/6；便携版打包脚本只需要 Python 标准库。`tools/build_installer.ps1` 会生成 `dist/LiteMP4-Setup-v1.7.exe`。
+安装程序构建需要 Inno Setup 5/6；便携版打包脚本只需要 Python 标准库。`tools/build_installer.ps1` 会生成适用于 64 位 Windows 10/11 的 `dist/LiteMP4-Setup-v1.7.3.exe`。
 
 ## 开发验证
 
@@ -104,6 +106,10 @@ python .\tools\package_release.py 1.7
 
 ```powershell
 python .\tests\ui_smoke_test.py
+python .\tests\video_click_smoke_test.py
+python .\tests\video_click_smoke_test.py --require-mpv "D:\Videos\hevc-main10.mp4"
+python .\tests\playback_rate_smoke_test.py
+python .\tests\playback_rate_smoke_test.py --require-mpv "D:\Videos\hevc-main10.mp4"
 python .\tests\error_smoke_test.py
 python .\tests\mpv_smoke_test.py "D:\Videos\av1.mp4" "D:\Videos\hevc-main10.mp4"
 python .\tests\backend_switch_test.py "D:\Videos\av1.mp4"
@@ -142,8 +148,8 @@ python .\tests\benchmark_player.py "D:\Videos\hevc-main10.mp4"
 
 `linux/` 目录提供同一播放器的 Linux 实现（Python3 + Tkinter + 系统 mpv，不依赖 .NET 和 Windows DLL），适用于 Deepin、Debian、Ubuntu 等发行版：
 
-- `dist/litemp4_1.1-2_all.deb`：Deepin/Debian/Ubuntu 安装包，执行 `sudo apt install ./litemp4_1.1-2_all.deb` 后从开始菜单启动"轻播 Lite"，依赖由 apt 自动解决。
-- `dist/LiteMP4-Linux-v1.1.zip`：完整源码包，解压后运行 `python3 litemp4.py`（需先安装 `mpv` 和 `python3-tk`）。
+- `dist/litemp4_1.1-4_all.deb`：Deepin/Debian/Ubuntu 安装包，执行 `sudo apt install ./litemp4_1.1-4_all.deb` 后从开始菜单启动"轻播 Lite"，依赖由 apt 自动解决。
+- `dist/LiteMP4-Linux-v1.1-4.zip`：完整源码包，解压后运行 `python3 litemp4.py`（需先安装 `mpv` 和 `python3-tk`）。
 
 Linux 版保留了播放列表自然排序、多选编辑、单曲循环、置顶、全屏、托盘、文件拖入和高分辨率流畅模式等特性，快捷键与 Windows 版一致。详细说明见 `linux/README.md` 和 `linux/DESIGN.md`。
 

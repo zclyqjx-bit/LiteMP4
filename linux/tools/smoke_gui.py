@@ -63,8 +63,10 @@ def main():
             app.step_rate(-1)
             check("[ 减速回 1x", app.rate == 1.0 and app.rate_button.cget("text") == "1×")
             app.set_rate(2.0)
+            app.step_rate(1)
+            app.step_rate(1)
             app.change_rate()
-            check("倍速按钮从 2x 循环回 0.5x", app.rate == 0.5)
+            check("倍速按钮从 3x 循环回 0.5x", app.rate == 0.5)
             app.set_rate(1.0)
 
             app.toggle_mute()
